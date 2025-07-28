@@ -1,0 +1,1522 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SushiDelicia - Sistema Profesional de Delivery</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+            color: #212529;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: linear-gradient(135deg, #212529 0%, #343a40 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .subtitle {
+            opacity: 0.9;
+            font-size: 1.2em;
+            font-weight: 300;
+        }
+
+        nav {
+            background: white;
+            padding: 20px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #212529;
+        }
+
+        .nav-buttons button {
+            background: white;
+            color: #495057;
+            border: 2px solid #dee2e6;
+            padding: 12px 24px;
+            margin: 0 5px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .nav-buttons button:hover {
+            background: #495057;
+            color: white;
+            border-color: #495057;
+            transform: translateY(-1px);
+        }
+
+        .nav-buttons button.active {
+            background: #212529;
+            color: white;
+            border-color: #212529;
+        }
+
+        .cart-counter {
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .section {
+            display: none;
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: #212529;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 1px solid #e9ecef;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.05);
+        }
+
+        .product-image-placeholder {
+            font-size: 4em;
+            color: #6c757d;
+        }
+
+        .product-info {
+            padding: 25px;
+        }
+
+        .product-name {
+            font-size: 1.4em;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #212529;
+        }
+
+        .product-description {
+            color: #6c757d;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            font-size: 0.95em;
+        }
+
+        .product-price {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+
+        .add-to-cart {
+            width: 100%;
+            background: #212529;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .add-to-cart:hover {
+            background: #495057;
+            transform: translateY(-1px);
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 600px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 25px;
+            border-bottom: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #212529;
+            font-weight: 600;
+        }
+
+        .close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close:hover {
+            color: #212529;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .extras-section {
+            margin: 25px 0;
+        }
+
+        .extras-section h4 {
+            color: #212529;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .extra-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .extra-item:last-child {
+            border-bottom: none;
+        }
+
+        .extra-item label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .extra-item input[type="checkbox"] {
+            margin-right: 12px;
+            transform: scale(1.2);
+        }
+
+        .extra-price {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        .quantity-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .quantity-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .quantity-btn {
+            background: #212529;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .quantity-btn:hover {
+            background: #495057;
+        }
+
+        .quantity-display {
+            font-size: 1.2em;
+            font-weight: 600;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .notes-section {
+            margin: 25px 0;
+        }
+
+        .notes-section h4 {
+            color: #212529;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .notes-section textarea {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .notes-section textarea:focus {
+            outline: none;
+            border-color: #212529;
+        }
+
+        .modal-footer {
+            padding: 25px;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .total-price {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #28a745;
+        }
+
+        .btn-add-to-cart {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+
+        .btn-add-to-cart:hover {
+            background: #218838;
+            transform: translateY(-1px);
+        }
+
+        /* Cart and other sections */
+        .cart-items, .checkout-section, .admin-content {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #f8f9fa;
+        }
+
+        .cart-item:last-child {
+            border-bottom: none;
+        }
+
+        .delivery-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 25px 0;
+        }
+
+        .delivery-option {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .delivery-option:hover {
+            border-color: #212529;
+            background: #e9ecef;
+        }
+
+        .delivery-option.selected {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .form-group {
+            margin: 20px 0;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            background: white;
+            color: #212529;
+            font-size: 1em;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #212529;
+        }
+
+        .btn-primary {
+            background: #212529;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        .btn-primary:hover {
+            background: #495057;
+            transform: translateY(-1px);
+        }
+
+        .empty-cart {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6c757d;
+        }
+
+        .empty-cart .icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        .success-animation {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .checkmark {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #28a745;
+            margin: 0 auto 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Admin Panel Styles */
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border: 1px solid #e9ecef;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-icon {
+            font-size: 2.5em;
+            margin-bottom: 15px;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .admin-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            flex-wrap: wrap;
+        }
+
+        .admin-tab-btn {
+            background: white;
+            color: #495057;
+            border: 1px solid #dee2e6;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .admin-tab-btn:hover {
+            background: #e9ecef;
+        }
+
+        .admin-tab-btn.active {
+            background: #212529;
+            color: white;
+            border-color: #212529;
+        }
+
+        .admin-tab-content {
+            display: none;
+        }
+
+        .admin-tab-content.active {
+            display: block;
+        }
+
+        .order-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .order-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .status-new { background: #fff3cd; color: #856404; }
+        .status-preparing { background: #d4edda; color: #155724; }
+        .status-ready { background: #cce5ff; color: #004085; }
+        .status-delivered { background: #e2e3e5; color: #495057; }
+
+        .btn-admin {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin: 0 2px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-admin:hover {
+            background: #495057;
+        }
+
+        .btn-admin.success {
+            background: #28a745;
+        }
+
+        .btn-admin.success:hover {
+            background: #218838;
+        }
+
+        .btn-admin.danger {
+            background: #dc3545;
+        }
+
+        .btn-admin.danger:hover {
+            background: #c82333;
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #28a745;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 6px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 1001;
+            font-weight: 600;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .delivery-options {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+            
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🍣 SushiDelicia</h1>
+        <p class="subtitle">Auténtico sushi japonés con la calidad que mereces</p>
+    </header>
+
+    <nav>
+        <div class="nav-container">
+            <div class="logo">SushiDelicia</div>
+            <div class="nav-buttons">
+                <button onclick="showSection('menu')" class="active">Menú</button>
+                <button onclick="showSection('cart')">
+                    Carrito <span class="cart-counter" id="cartCounter">0</span>
+                </button>
+                <button onclick="showSection('checkout')">Checkout</button>
+                <button onclick="showSection('admin')" style="background: #6c757d; color: white; border-color: #6c757d;">
+                    Panel Admin
+                </button>
+            </div>
+        </div>
+    </nav>
+
+        <div class="container">
+    <!-- SECCIÓN MENÚ -->
+    <section id="menu" class="section active">
+        <h2 style="text-align: center; margin: 40px 0; font-size: 2.5em; color: #212529; font-weight: 300;">
+            Nuestro Menú
+        </h2>
+        <div class="products-grid" id="productsGrid">
+
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="https://source.unsplash.com/350x200/?sashimi" alt="Sashimi Variado">
+                </div>
+                <div class="product-info">
+                    <div class="product-name">Sashimi Variado</div>
+                    <div class="product-description">
+                        Selección de pescados frescos: salmón, atún y pargo, cortados tradicionalmente por nuestros chefs especializados
+                    </div>
+                    <div class="product-price">$280</div>
+                    <button class="add-to-cart" onclick="openProductModal('Sashimi Variado', 280, '🍣')">
+                        Personalizar y Agregar
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="https://source.unsplash.com/350x200/?bento-box" alt="Bento Box Deluxe">
+                </div>
+                <div class="product-info">
+                    <div class="product-name">Bento Box Deluxe</div>
+                    <div class="product-description">
+                        Caja completa con california roll, tempura de camarón, sashimi y arroz japonés con verduras
+                    </div>
+                    <div class="product-price">$350</div>
+                    <button class="add-to-cart" onclick="openProductModal('Bento Box Deluxe', 350, '🍱')">
+                        Personalizar y Agregar
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="https://source.unsplash.com/350x200/?california-roll" alt="California Roll">
+                </div>
+                <div class="product-info">
+                    <div class="product-name">California Roll</div>
+                    <div class="product-description">
+                        Clásico roll con cangrejo, aguacate y pepino, cubierto de sésamo tostado
+                    </div>
+                    <div class="product-price">$180</div>
+                    <button class="add-to-cart" onclick="openProductModal('California Roll', 180, '🥢')">
+                        Personalizar y Agregar
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="https://source.unsplash.com/350x200/?salmon-teriyaki" alt="Salmón Teriyaki">
+                </div>
+                <div class="product-info">
+                    <div class="product-name">Salmón Teriyaki</div>
+                    <div class="product-description">
+                        Salmón fresco con salsa teriyaki casera, acompañado de verduras al vapor y arroz
+                    </div>
+                    <div class="product-price">$320</div>
+                    <button class="add-to-cart" onclick="openProductModal('Salmón Teriyaki', 320, '🐟')">
+                        Personalizar y Agregar
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="https://source.unsplash.com/350x200/?shrimp-tempura" alt="Tempura Mix">
+                </div>
+                <div class="product-info">
+                    <div class="product-name">Tempura Mix</div>
+                    <div class="product-description">
+                        Camarones y verduras en tempura crujiente con salsa ponzu tradicional
+                    </div>
+                    <div class="product-price">$250</div>
+                    <button class="add-to-cart" onclick="openProductModal('Tempura Mix', 250, '🦐')">
+                        Personalizar y Agregar
+                    </button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-image">
+                    <img src="https://source.unsplash.com/350x200/?ramen-tonkotsu" alt="Ramen Tonkotsu">
+                </div>
+                <div class="product-info">
+                    <div class="product-name">Ramen Tonkotsu</div>
+                    <div class="product-description">
+                        Caldo cremoso de hueso de cerdo con chashu, huevo marinado y nori
+                    </div>
+                    <div class="product-price">$220</div>
+                    <button class="add-to-cart" onclick="openProductModal('Ramen Tonkotsu', 220, '🍜')">
+                        Personalizar y Agregar
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+
+        <!-- MODAL PERSONALIZACIÓN PRODUCTO -->
+        <div id="productModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalProductName">Personalizar Producto</h3>
+                    <button class="close" onclick="closeProductModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px;">
+                        <span id="modalProductIcon" style="font-size: 3em;"></span>
+                        <div>
+                            <h4 id="modalProductNameDetail" style="margin: 0; color: #212529;"></h4>
+                            <div id="modalBasePrice" style="font-size: 1.3em; font-weight: 600; color: #28a745; margin-top: 8px;"></div>
+                        </div>
+                    </div>
+
+                    <div class="extras-section">
+                        <h4>🥢 Extras y Adicionales</h4>
+                        <div class="extra-item">
+                            <label>
+                                <input type="checkbox" class="extra-checkbox" data-price="25">
+                                Salsa Soya Extra
+                            </label>
+                            <span class="extra-price">+$25</span>
+                        </div>
+                        <div class="extra-item">
+                            <label>
+                                <input type="checkbox" class="extra-checkbox" data-price="35">
+                                Wasabi Premium
+                            </label>
+                            <span class="extra-price">+$35</span>
+                        </div>
+                        <div class="extra-item">
+                            <label>
+                                <input type="checkbox" class="extra-checkbox" data-price="45">
+                                Jengibre Encurtido Extra
+                            </label>
+                            <span class="extra-price">+$45</span>
+                        </div>
+                        <div class="extra-item">
+                            <label>
+                                <input type="checkbox" class="extra-checkbox" data-price="60">
+                                Salmón Extra (8 piezas)
+                            </label>
+                            <span class="extra-price">+$60</span>
+                        </div>
+                    </div>
+
+                    <div class="quantity-section">
+                        <h4 style="margin: 0;">Cantidad:</h4>
+                        <div class="quantity-controls">
+                            <button class="quantity-btn" onclick="changeModalQuantity(-1)">-</button>
+                            <span class="quantity-display" id="modalQuantity">1</span>
+                            <button class="quantity-btn" onclick="changeModalQuantity(1)">+</button>
+                        </div>
+                    </div>
+
+                    <div class="notes-section">
+                        <h4>📝 Notas Especiales</h4>
+                        <textarea id="productNotes" placeholder="Ej: Sin cebolla, extra picante, sin gluten, etc..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="total-price" id="modalTotalPrice">$280</div>
+                    <button class="btn-add-to-cart" onclick="addCustomProductToCart()">Agregar al Carrito</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN CARRITO -->
+        <section id="cart" class="section">
+            <h2 style="text-align: center; margin: 40px 0; font-size: 2.5em; color: #212529; font-weight: 300;">Tu Carrito</h2>
+            <div id="cartContent">
+                <div class="empty-cart">
+                    <div class="icon">🛒</div>
+                    <h3>Tu carrito está vacío</h3>
+                    <p style="color: #6c757d;">Explora nuestro menú y agrega productos</p>
+                    <button class="btn-primary" onclick="showSection('menu')" style="width: auto; margin-top: 20px; padding: 12px 30px;">
+                        Ver Menú
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN CHECKOUT -->
+        <section id="checkout" class="section">
+            <h2 style="text-align: center; margin: 40px 0; font-size: 2.5em; color: #212529; font-weight: 300;">Finalizar Pedido</h2>
+            <div class="checkout-section">
+                <h3 style="color: #212529; margin-bottom: 25px; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">📋 Información Personal</h3>
+
+                <div class="form-group">
+                    <label>Nombre Completo *</label>
+                    <input type="text" placeholder="Tu nombre completo" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Teléfono *</label>
+                    <input type="tel" placeholder="Tu número de teléfono" required>
+                </div>
+
+                <h3 style="color: #212529; margin: 40px 0 25px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">🚚 Tipo de Servicio</h3>
+                
+                <div class="delivery-options">
+                    <div class="delivery-option" onclick="selectDeliveryType('delivery')">
+                        <div style="font-size: 2.5em; margin-bottom: 10px;">🚚</div>
+                        <h4>Entrega a Domicilio</h4>
+                        <p style="color: #6c757d; margin: 0;">Llevamos tu pedido hasta tu puerta</p>
+                    </div>
+                    <div class="delivery-option" onclick="selectDeliveryType('pickup')">
+                        <div style="font-size: 2.5em; margin-bottom: 10px;">🏪</div>
+                        <h4>Recoger en Tienda</h4>
+                        <p style="color: #6c757d; margin: 0;">Recoge tu pedido directamente en nuestro local</p>
+                    </div>
+                </div>
+
+                <div id="deliveryInfo" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                    <h4>📍 Dirección de Entrega</h4>
+                    <div class="form-group">
+                        <label>Dirección Completa</label>
+                        <input type="text" placeholder="Ej: Av. Reforma 123, Roma Norte, CDMX">
+                    </div>
+                    <p style="color: #28a745; font-weight: 600;">✓ Costo de envío: $35 - $80 (según distancia)</p>
+                </div>
+
+                <div id="pickupInfo" style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                    <h4 style="color: #856404;">🏪 Información de Recolección</h4>
+                    <p><strong>Dirección:</strong> Av. Reforma 180, Juárez, Ciudad de México</p>
+                    <p><strong>Horarios:</strong> Lunes a Domingo de 11:00 AM a 11:00 PM</p>
+                    <p><strong>Tiempo de preparación:</strong> 25-35 minutos</p>
+                    <div style="background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 6px; padding: 15px; margin-top: 15px; color: #0c5460;">
+                        <strong>📱 Notificación WhatsApp:</strong> Te enviaremos un mensaje cuando tu pedido esté listo para recoger.
+                    </div>
+                </div>
+
+                <button class="btn-primary" onclick="processOrder()">
+                    🍣 Confirmar Pedido de Demostración
+                </button>
+            </div>
+        </section>
+
+        <!-- SECCIÓN CONFIRMACIÓN -->
+        <section id="success" class="section">
+            <div class="success-animation">
+                <div class="checkmark">✓</div>
+                <h2 style="color: #28a745; margin-bottom: 20px; font-weight: 300;">¡Pedido Confirmado!</h2>
+                <p style="font-size: 1.3em; margin-bottom: 40px; color: #6c757d;">Este es un sistema de demostración</p>
+
+                <div style="background: white; padding: 35px; border-radius: 12px; text-align: left; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e9ecef;">
+                    <h3 style="color: #212529; margin-bottom: 20px;">📋 Detalles del Pedido Demo</h3>
+                    <div style="display: grid; gap: 12px;">
+                        <p><strong>Número de Pedido:</strong> <span style="color: #007bff;">#DEMO-001</span></p>
+                        <p><strong>Tipo de Servicio:</strong> <span id="serviceTypeDisplay">Entrega a domicilio</span></p>
+                        <p><strong>Tiempo Estimado:</strong> <span id="estimatedTimeDisplay">35-45 minutos</span></p>
+                        <p><strong>Total:</strong> <span style="color: #28a745; font-weight: bold; font-size: 1.2em;">$0</span></p>
+                        <p><strong>Estado:</strong> <span style="color: #ffc107; font-weight: 600;">⏳ En preparación</span></p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 40px;">
+                    <button class="btn-primary" onclick="newOrder()" style="width: auto; padding: 15px 40px;">
+                        Hacer Nuevo Pedido
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECCIÓN ADMIN -->
+        <section id="admin" class="section">
+            <h2 style="text-align: center; margin: 40px 0; font-size: 2.5em; color: #212529; font-weight: 300;">Panel de Administración</h2>
+            
+            <!-- Estadísticas -->
+            <div class="admin-stats">
+                <div class="stat-card" style="border-left: 4px solid #28a745;">
+                    <div class="stat-icon">📋</div>
+                    <div class="stat-value">12</div>
+                    <div class="stat-label">Pedidos Hoy</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid #ffc107;">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Pendientes</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid #007bff;">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-value">$2,450</div>
+                    <div class="stat-label">Ventas Hoy</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid #dc3545;">
+                    <div class="stat-icon">🍣</div>
+                    <div class="stat-value">6</div>
+                    <div class="stat-label">Productos</div>
+                </div>
+            </div>
+
+            <!-- Tabs de Administración -->
+            <div class="admin-tabs">
+                <button class="admin-tab-btn active" onclick="showAdminTab('orders')">📋 Gestión de Pedidos</button>
+                <button class="admin-tab-btn" onclick="showAdminTab('menu')">🍣 Gestión de Menú</button>
+                <button class="admin-tab-btn" onclick="showAdminTab('analytics')">📊 Análisis</button>
+                <button class="admin-tab-btn" onclick="showAdminTab('settings')">⚙️ Configuración</button>
+            </div>
+
+            <!-- Tab: Gestión de Pedidos -->
+            <div id="ordersTab" class="admin-tab-content active">
+                <div class="admin-content">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: #212529; margin: 0;">📋 Pedidos Activos</h3>
+                        <button class="btn-admin success" onclick="addDemoOrder()">➕ Agregar Pedido Demo</button>
+                    </div>
+                    <div id="ordersList">
+                        <!-- Pedidos aparecerán aquí -->
+                        <div style="text-align: center; padding: 40px; color: #6c757d;">
+                            <div style="font-size: 3em; margin-bottom: 20px;">📋</div>
+                            <h3>Demo: Gestión de Pedidos</h3>
+                            <p>Haz clic en "Agregar Pedido Demo" para ver cómo funciona</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Gestión de Menú -->
+            <div id="menuTab" class="admin-tab-content">
+                <div class="admin-content">
+                    <h3 style="color: #212529; margin-bottom: 20px;">🍣 Gestión de Menú</h3>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4>Funcionalidades del Sistema:</h4>
+                        <ul style="margin: 15px 0; padding-left: 20px;">
+                            <li>✅ Agregar nuevos productos</li>
+                            <li>✅ Editar productos existentes</li>
+                            <li>✅ Subir imágenes de productos</li>
+                            <li>✅ Gestionar precios y descripciones</li>
+                            <li>✅ Activar/desactivar productos</li>
+                            <li>✅ Organizar por categorías</li>
+                        </ul>
+                        <button class="btn-admin success">💡 Ver Demo Interactivo</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Analytics -->
+            <div id="analyticsTab" class="admin-tab-content">
+                <div class="admin-content">
+                    <h3 style="color: #212529; margin-bottom: 20px;">📊 Análisis y Reportes</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                            <h4>📈 Productos Más Vendidos</h4>
+                            <div style="margin-top: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>1. 🥢 California Roll</span>
+                                    <span style="font-weight: bold; color: #28a745;">67 ventas</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>2. 🍜 Ramen Tonkotsu</span>
+                                    <span style="font-weight: bold; color: #28a745;">51 ventas</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>3. 🍣 Sashimi Variado</span>
+                                    <span style="font-weight: bold; color: #28a745;">45 ventas</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                            <h4>⏰ Horas Pico</h4>
+                            <div style="margin-top: 15px;">
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>19:00-20:00</span>
+                                    <span style="font-weight: bold; color: #007bff;">18 pedidos</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>20:00-21:00</span>
+                                    <span style="font-weight: bold; color: #007bff;">15 pedidos</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin: 8px 0;">
+                                    <span>13:00-14:00</span>
+                                    <span style="font-weight: bold; color: #007bff;">12 pedidos</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Configuración -->
+            <div id="settingsTab" class="admin-tab-content">
+                <div class="admin-content">
+                    <h3 style="color: #212529; margin-bottom: 20px;">⚙️ Configuración del Sistema</h3>
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        <h4>🏪 Configuraciones Disponibles:</h4>
+                        <div style="margin: 20px 0;">
+                            <div style="margin: 10px 0;">✅ <strong>Información del restaurante</strong> - Nombre, dirección, horarios</div>
+                            <div style="margin: 10px 0;">✅ <strong>Configuración de envío</strong> - Costos, radios, zonas</div>
+                            <div style="margin: 10px 0;">✅ <strong>WhatsApp Business</strong> - Notificaciones automáticas</div>
+                            <div style="margin: 10px 0;">✅ <strong>Métodos de pago</strong> - Tarjetas, efectivo, transferencias</div>
+                            <div style="margin: 10px 0;">✅ <strong>Notificaciones</strong> - Email, SMS, push notifications</div>
+                        </div>
+                        <button class="btn-admin" onclick="testWhatsApp()">📱 Probar WhatsApp</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Variables globales
+        let cart = [];
+        let currentProduct = null;
+        let selectedDeliveryType = null;
+        let demoOrders = [];
+
+        // Navegación entre secciones
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-buttons button').forEach(b => b.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // Modal de personalización
+        function openProductModal(name, price, icon) {
+            currentProduct = { name, price, icon };
+            document.getElementById('modalProductName').textContent = name;
+            document.getElementById('modalProductNameDetail').textContent = name;
+            document.getElementById('modalProductIcon').textContent = icon;
+            document.getElementById('modalBasePrice').textContent = `$${price}`;
+            document.getElementById('modalQuantity').textContent = '1';
+            document.getElementById('productNotes').value = '';
+            
+            // Reset extras
+            document.querySelectorAll('.extra-checkbox').forEach(cb => cb.checked = false);
+            
+            updateModalPrice();
+            document.getElementById('productModal').style.display = 'block';
+        }
+
+        function closeProductModal() {
+            document.getElementById('productModal').style.display = 'none';
+        }
+
+        function changeModalQuantity(delta) {
+            const quantityEl = document.getElementById('modalQuantity');
+            let quantity = parseInt(quantityEl.textContent) + delta;
+            if (quantity < 1) quantity = 1;
+            quantityEl.textContent = quantity;
+            updateModalPrice();
+        }
+
+        function updateModalPrice() {
+            if (!currentProduct) return;
+            
+            const quantity = parseInt(document.getElementById('modalQuantity').textContent);
+            let basePrice = currentProduct.price;
+            let extrasPrice = 0;
+            
+            document.querySelectorAll('.extra-checkbox:checked').forEach(cb => {
+                extrasPrice += parseInt(cb.dataset.price);
+            });
+            
+            const totalPrice = (basePrice + extrasPrice) * quantity;
+            document.getElementById('modalTotalPrice').textContent = `$${totalPrice}`;
+        }
+
+        function addCustomProductToCart() {
+            if (!currentProduct) return;
+            
+            const quantity = parseInt(document.getElementById('modalQuantity').textContent);
+            const notes = document.getElementById('productNotes').value.trim();
+            
+            let extras = [];
+            let extrasPrice = 0;
+            document.querySelectorAll('.extra-checkbox:checked').forEach(cb => {
+                const extraName = cb.parentElement.textContent.trim();
+                const extraPrice = parseInt(cb.dataset.price);
+                extras.push({ name: extraName, price: extraPrice });
+                extrasPrice += extraPrice;
+            });
+            
+            const totalItemPrice = currentProduct.price + extrasPrice;
+            const cartItem = {
+                name: currentProduct.name,
+                basePrice: currentProduct.price,
+                totalPrice: totalItemPrice,
+                icon: currentProduct.icon,
+                quantity: quantity,
+                extras: extras,
+                notes: notes
+            };
+            
+            cart.push(cartItem);
+            updateCartDisplay();
+            updateCartCounter();
+            closeProductModal();
+            showNotification('Producto agregado al carrito');
+        }
+
+        function updateCartCounter() {
+            const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+            document.getElementById('cartCounter').textContent = total;
+        }
+
+        function updateCartDisplay() {
+            const container = document.getElementById('cartContent');
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-cart">
+                        <div class="icon">🛒</div>
+                        <h3>Tu carrito está vacío</h3>
+                        <p style="color: #6c757d;">Explora nuestro menú y agrega productos</p>
+                        <button class="btn-primary" onclick="showSection('menu')" style="width: auto; margin-top: 20px; padding: 12px 30px;">
+                            Ver Menú
+                        </button>
+                    </div>`;
+                return;
+            }
+
+            let html = '<div class="cart-items">';
+            let subtotal = 0;
+
+            cart.forEach((item, index) => {
+                const itemTotal = item.totalPrice * item.quantity;
+                subtotal += itemTotal;
+                
+                let extrasText = '';
+                if (item.extras && item.extras.length > 0) {
+                    extrasText = item.extras.map(e => e.name).join(', ');
+                }
+
+                html += `
+                    <div class="cart-item">
+                        <div style="display: flex; align-items: flex-start; gap: 15px; flex: 1;">
+                            <span style="font-size: 2em;">${item.icon}</span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 1.1em; margin-bottom: 5px;">${item.name}</div>
+                                <div style="color: #28a745; font-weight: 600; margin-bottom: 5px;">$${item.totalPrice} c/u</div>
+                                ${extrasText ? `<div style="color: #6c757d; font-size: 0.9em; margin-bottom: 5px;"><strong>Extras:</strong> ${extrasText}</div>` : ''}
+                                ${item.notes ? `<div style="color: #6c757d; font-size: 0.9em;"><strong>Notas:</strong> ${item.notes}</div>` : ''}
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <button onclick="changeCartQuantity(${index}, -1)" style="background: #dc3545; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold;">-</button>
+                                <span style="font-weight: 600; min-width: 30px; text-align: center;">${item.quantity}</span>
+                                <button onclick="changeCartQuantity(${index}, 1)" style="background: #28a745; color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-weight: bold;">+</button>
+                            </div>
+                            <div style="font-weight: bold; color: #28a745; font-size: 1.1em;">$${itemTotal}</div>
+                        </div>
+                    </div>`;
+            });
+
+            html += `
+                <div style="border-top: 2px solid #e9ecef; padding-top: 25px; margin-top: 25px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 1.4em; font-weight: bold; color: #28a745; margin-bottom: 25px;">
+                        <span>Total:</span>
+                        <span>$${subtotal}</span>
+                    </div>
+                    <button class="btn-primary" onclick="showSection('checkout')">
+                        Proceder al Checkout
+                    </button>
+                </div>
+            </div>`;
+
+            container.innerHTML = html;
+        }
+
+        function changeCartQuantity(index, delta) {
+            cart[index].quantity += delta;
+            if (cart[index].quantity <= 0) {
+                cart.splice(index, 1);
+            }
+            updateCartDisplay();
+            updateCartCounter();
+        }
+
+        // Delivery type selection
+        function selectDeliveryType(type) {
+            selectedDeliveryType = type;
+            document.querySelectorAll('.delivery-option').forEach(opt => opt.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            
+            if (type === 'delivery') {
+                document.getElementById('deliveryInfo').style.display = 'block';
+                document.getElementById('pickupInfo').style.display = 'none';
+            } else {
+                document.getElementById('deliveryInfo').style.display = 'none';
+                document.getElementById('pickupInfo').style.display = 'block';
+            }
+        }
+
+        // Process order
+        function processOrder() {
+            if (!selectedDeliveryType) {
+                alert('Por favor selecciona el tipo de servicio');
+                return;
+            }
+            
+            const btn = event.currentTarget;
+            const originalText = btn.textContent;
+            btn.textContent = 'Procesando pedido...';
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                const serviceType = selectedDeliveryType === 'delivery' ? 'Entrega a domicilio' : 'Recoger en tienda';
+                document.getElementById('serviceTypeDisplay').textContent = serviceType;
+                
+                const estimatedTime = selectedDeliveryType === 'delivery' ? '45-60 minutos' : '25-35 minutos';
+                document.getElementById('estimatedTimeDisplay').textContent = estimatedTime;
+                
+                showSection('success');
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
+
+        function newOrder() {
+            cart = [];
+            selectedDeliveryType = null;
+            updateCartDisplay();
+            updateCartCounter();
+            document.querySelectorAll('.delivery-option').forEach(opt => opt.classList.remove('selected'));
+            document.getElementById('deliveryInfo').style.display = 'none';
+            document.getElementById('pickupInfo').style.display = 'none';
+            showSection('menu');
+        }
+
+        // Admin functions
+        function showAdminTab(tabName) {
+            document.querySelectorAll('.admin-tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.admin-tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.currentTarget.classList.add('active');
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        function addDemoOrder() {
+            const orderNumber = demoOrders.length + 1001;
+            const newOrder = {
+                id: `#SU-${orderNumber}`,
+                customer: `Cliente Demo #${orderNumber}`,
+                phone: '+52 55 1234 5678',
+                items: 'California Roll x2, Sashimi Variado x1',
+                total: '$640',
+                type: Math.random() > 0.5 ? 'delivery' : 'pickup',
+                status: 'new'
+            };
+            
+            demoOrders.push(newOrder);
+            updateOrdersList();
+            showNotification('Pedido demo agregado');
+        }
+
+        function updateOrdersList() {
+            const container = document.getElementById('ordersList');
+            
+            if (demoOrders.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        <div style="font-size: 3em; margin-bottom: 20px;">📋</div>
+                        <h3>Demo: Gestión de Pedidos</h3>
+                        <p>Haz clic en "Agregar Pedido Demo" para ver cómo funciona</p>
+                    </div>`;
+                return;
+            }
+            
+            let html = '';
+            demoOrders.forEach(order => {
+                const statusClass = `status-${order.status}`;
+                const statusText = {
+                    'new': 'Nuevo',
+                    'preparing': 'Preparando',
+                    'ready': 'Listo',
+                    'delivered': 'Entregado'
+                }[order.status];
+                
+                html += `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <div>
+                                <h4 style="margin: 0; color: #212529;">${order.id}</h4>
+                                <p style="margin: 5px 0; color: #6c757d;">${order.customer} • ${order.phone}</p>
+                                <p style="margin: 0; color: #6c757d; font-size: 0.9em;">
+                                    ${order.type === 'delivery' ? '🚚 Entrega a domicilio' : '🏪 Recoger en tienda'}
+                                </p>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="order-status ${statusClass}">${statusText}</div>
+                                <div style="font-size: 1.2em; font-weight: bold; color: #28a745; margin-top: 5px;">${order.total}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin: 15px 0;">
+                            <strong>Productos:</strong> ${order.items}
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px; margin-top: 15px;">
+                            ${order.status === 'new' ? `<button class="btn-admin success" onclick="updateOrderStatus('${order.id}', 'preparing')">👨‍🍳 Comenzar Preparación</button>` : ''}
+                            ${order.status === 'preparing' ? `<button class="btn-admin success" onclick="updateOrderStatus('${order.id}', 'ready')">✅ Marcar como Listo</button>` : ''}
+                            ${order.status === 'ready' && order.type === 'pickup' ? `<button class="btn-admin success" onclick="notifyPickupReady('${order.id}')">📱 Notificar WhatsApp</button>` : ''}
+                            <button class="btn-admin" onclick="viewOrderDemo('${order.id}')">👁️ Ver Detalles</button>
+                        </div>
+                    </div>`;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function updateOrderStatus(orderId, newStatus) {
+            const order = demoOrders.find(o => o.id === orderId);
+            if (order) {
+                order.status = newStatus;
+                updateOrdersList();
+                showNotification(`Pedido ${orderId} actualizado a: ${newStatus}`);
+            }
+        }
+
+        function notifyPickupReady(orderId) {
+            showNotification(`📱 WhatsApp enviado: "Tu pedido ${orderId} está listo para recoger"`);
+            updateOrderStatus(orderId, 'delivered');
+        }
+
+        function viewOrderDemo(orderId) {
+            showNotification(`Demo: Viendo detalles del pedido ${orderId}`);
+        }
+
+        function testWhatsApp() {
+            showNotification('📱 Mensaje de prueba enviado a WhatsApp Business');
+        }
+
+        // Utility functions
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Event listeners
+        document.addEventListener('change', function(e) {
+            if (e.target.classList.contains('extra-checkbox')) {
+                updateModalPrice();
+            }
+        });
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('productModal');
+            if (event.target === modal) {
+                closeProductModal();
+            }
+        };
+
+        // Initialize
+        updateCartDisplay();
+        updateCartCounter();
+    </script>
+</body>
+</html>
