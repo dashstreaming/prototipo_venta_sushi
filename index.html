@@ -752,111 +752,116 @@
     </nav>
 
         <div class="container">
-    <!-- SECCIÓN MENÚ -->
-    <section id="menu" class="section active">
-        <h2 style="text-align: center; margin: 40px 0; font-size: 2.5em; color: #212529; font-weight: 300;">
-            Nuestro Menú
-        </h2>
-        <div class="products-grid" id="productsGrid">
+        <!-- SECCIÓN MENÚ -->
+        <section id="menu" class="section active">
+            <h2 style="text-align:center;margin:40px 0;font-size:2.5em;color:#212529;font-weight:300;">
+                Nuestro Menú
+            </h2>
+            <div class="products-grid" id="productsGrid">
 
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="https://source.unsplash.com/350x200/?sashimi" alt="Sashimi Variado">
-                </div>
-                <div class="product-info">
-                    <div class="product-name">Sashimi Variado</div>
-                    <div class="product-description">
-                        Selección de pescados frescos: salmón, atún y pargo, cortados tradicionalmente por nuestros chefs especializados
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="images/sashimi-variado.jpg" alt="Sashimi Variado">
                     </div>
-                    <div class="product-price">$280</div>
-                    <button class="add-to-cart" onclick="openProductModal('Sashimi Variado', 280, '🍣')">
-                        Personalizar y Agregar
-                    </button>
-                </div>
-            </div>
-
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="https://source.unsplash.com/350x200/?bento-box" alt="Bento Box Deluxe">
-                </div>
-                <div class="product-info">
-                    <div class="product-name">Bento Box Deluxe</div>
-                    <div class="product-description">
-                        Caja completa con california roll, tempura de camarón, sashimi y arroz japonés con verduras
+                    <div class="product-info">
+                        <div class="product-name">Sashimi Variado</div>
+                        <div class="product-description">
+                            Selección de pescados frescos: salmón, atún y pargo, cortados
+                            tradicionalmente por nuestros chefs especializados
+                        </div>
+                        <div class="product-price">$280</div>
+                        <button class="add-to-cart" onclick="openProductModal('Sashimi Variado',280,'🍣')">
+                            Personalizar y Agregar
+                        </button>
                     </div>
-                    <div class="product-price">$350</div>
-                    <button class="add-to-cart" onclick="openProductModal('Bento Box Deluxe', 350, '🍱')">
-                        Personalizar y Agregar
-                    </button>
                 </div>
-            </div>
 
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="https://source.unsplash.com/350x200/?california-roll" alt="California Roll">
-                </div>
-                <div class="product-info">
-                    <div class="product-name">California Roll</div>
-                    <div class="product-description">
-                        Clásico roll con cangrejo, aguacate y pepino, cubierto de sésamo tostado
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="images/bento-box-deluxe.jpg" alt="Bento Box Deluxe">
                     </div>
-                    <div class="product-price">$180</div>
-                    <button class="add-to-cart" onclick="openProductModal('California Roll', 180, '🥢')">
-                        Personalizar y Agregar
-                    </button>
-                </div>
-            </div>
-
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="https://source.unsplash.com/350x200/?salmon-teriyaki" alt="Salmón Teriyaki">
-                </div>
-                <div class="product-info">
-                    <div class="product-name">Salmón Teriyaki</div>
-                    <div class="product-description">
-                        Salmón fresco con salsa teriyaki casera, acompañado de verduras al vapor y arroz
+                    <div class="product-info">
+                        <div class="product-name">Bento Box Deluxe</div>
+                        <div class="product-description">
+                            Caja completa con california roll, tempura de camarón, sashimi
+                            y arroz japonés con verduras
+                        </div>
+                        <div class="product-price">$350</div>
+                        <button class="add-to-cart" onclick="openProductModal('Bento Box Deluxe',350,'🍱')">
+                            Personalizar y Agregar
+                        </button>
                     </div>
-                    <div class="product-price">$320</div>
-                    <button class="add-to-cart" onclick="openProductModal('Salmón Teriyaki', 320, '🐟')">
-                        Personalizar y Agregar
-                    </button>
                 </div>
-            </div>
 
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="https://source.unsplash.com/350x200/?shrimp-tempura" alt="Tempura Mix">
-                </div>
-                <div class="product-info">
-                    <div class="product-name">Tempura Mix</div>
-                    <div class="product-description">
-                        Camarones y verduras en tempura crujiente con salsa ponzu tradicional
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="images/california-roll.jpg" alt="California Roll">
                     </div>
-                    <div class="product-price">$250</div>
-                    <button class="add-to-cart" onclick="openProductModal('Tempura Mix', 250, '🦐')">
-                        Personalizar y Agregar
-                    </button>
-                </div>
-            </div>
-
-            <div class="product-card">
-                <div class="product-image">
-                    <img src="https://source.unsplash.com/350x200/?ramen-tonkotsu" alt="Ramen Tonkotsu">
-                </div>
-                <div class="product-info">
-                    <div class="product-name">Ramen Tonkotsu</div>
-                    <div class="product-description">
-                        Caldo cremoso de hueso de cerdo con chashu, huevo marinado y nori
+                    <div class="product-info">
+                        <div class="product-name">California Roll</div>
+                        <div class="product-description">
+                            Clásico roll con cangrejo, aguacate y pepino, cubierto de
+                            sésamo tostado
+                        </div>
+                        <div class="product-price">$180</div>
+                        <button class="add-to-cart" onclick="openProductModal('California Roll',180,'🥢')">
+                            Personalizar y Agregar
+                        </button>
                     </div>
-                    <div class="product-price">$220</div>
-                    <button class="add-to-cart" onclick="openProductModal('Ramen Tonkotsu', 220, '🍜')">
-                        Personalizar y Agregar
-                    </button>
                 </div>
-            </div>
 
-        </div>
-    </section>
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="images/salmon-teriyaki.jpg" alt="Salmón Teriyaki">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Salmón Teriyaki</div>
+                        <div class="product-description">
+                            Salmón fresco con salsa teriyaki casera, acompañado de verduras
+                            al vapor y arroz
+                        </div>
+                        <div class="product-price">$320</div>
+                        <button class="add-to-cart" onclick="openProductModal('Salmón Teriyaki',320,'🐟')">
+                            Personalizar y Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="images/tempura-mix.jpg" alt="Tempura Mix">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Tempura Mix</div>
+                        <div class="product-description">
+                            Camarones y verduras en tempura crujiente con salsa ponzu
+                            tradicional
+                        </div>
+                        <div class="product-price">$250</div>
+                        <button class="add-to-cart" onclick="openProductModal('Tempura Mix',250,'🦐')">
+                            Personalizar y Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="images/ramen-tonkotsu.jpg" alt="Ramen Tonkotsu">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">Ramen Tonkotsu</div>
+                        <div class="product-description">
+                            Caldo cremoso de hueso de cerdo con chashu, huevo marinado y nori
+                        </div>
+                        <div class="product-price">$220</div>
+                        <button class="add-to-cart" onclick="openProductModal('Ramen Tonkotsu',220,'🍜')">
+                            Personalizar y Agregar
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </section>
 
 
         <!-- MODAL PERSONALIZACIÓN PRODUCTO -->
