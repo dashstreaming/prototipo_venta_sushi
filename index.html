@@ -468,6 +468,33 @@
             background: #d4edda;
         }
 
+        .payment-methods {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .payment-method {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .payment-method:hover {
+            border-color: #212529;
+            background: #e9ecef;
+        }
+
+        .payment-method.selected {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
         .form-group {
             margin: 20px 0;
         }
@@ -553,6 +580,29 @@
             0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
+        }
+
+        /* Map styles */
+        #mapContainer {
+            display: none;
+            margin: 20px 0;
+        }
+
+        #map {
+            height: 400px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #dee2e6;
+        }
+
+        .restaurant-marker,
+        .user-marker {
+            background: transparent;
+            border: none;
+            font-size: 24px;
+            text-align: center;
+            line-height: 30px;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
         }
 
         /* Admin Panel Styles */
@@ -710,6 +760,28 @@
 
         .notification.show {
             transform: translateX(0);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
         }
 
         /* Responsive */
@@ -964,6 +1036,11 @@
                     <input type="tel" placeholder="Tu número de teléfono" required>
                 </div>
 
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" placeholder="tu@email.com (opcional)">
+                </div>
+
                 <h3 style="color: #212529; margin: 40px 0 25px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">🚚 Tipo de Servicio</h3>
                 
                 <div class="delivery-options">
@@ -979,27 +1056,111 @@
                     </div>
                 </div>
 
-                <div id="deliveryInfo" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
-                    <h4>📍 Dirección de Entrega</h4>
+                <div id="deliverySection" style="display: none;">
+                    <h4 style="color: #212529; margin: 25px 0 15px 0;">📍 Dirección de Entrega</h4>
                     <div class="form-group">
-                        <label>Dirección Completa</label>
-                        <input type="text" placeholder="Ej: Av. Reforma 123, Roma Norte, CDMX">
+                        <label>Calle y Número *</label>
+                        <input type="text" placeholder="Ej: Av. Reforma 123" required>
                     </div>
-                    <p style="color: #28a745; font-weight: 600;">✓ Costo de envío: $35 - $80 (según distancia)</p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Colonia *</label>
+                            <input type="text" placeholder="Tu colonia" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Código Postal *</label>
+                            <input type="text" placeholder="12345" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Referencias</label>
+                        <textarea placeholder="Ej: Casa azul con portón negro, entre farmacia y tienda" rows="3"></textarea>
+                    </div>
+
+                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;">
+                        <h4 style="margin-bottom: 15px; color: #212529;">🗺️ Ubicación y Cálculo de Envío</h4>
+                        <div class="form-group">
+                            <label>Buscar dirección</label>
+                            <input type="text" id="addressSearch" placeholder="Ej: Av. Reforma 123, Ciudad de México">
+                            <button onclick="searchAddress()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; margin-top: 10px;">
+                                🔍 Buscar Ubicación
+                            </button>
+                        </div>
+
+                        <div style="margin: 20px 0;">
+                            <button onclick="toggleMap()" id="mapToggle" style="background: #17a2b8; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer;">
+                                📍 Abrir Mapa Interactivo
+                            </button>
+                            <button onclick="getCurrentLocation()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; margin-left: 10px;">
+                                📱 Mi Ubicación Actual
+                            </button>
+                        </div>
+
+                        <div id="mapContainer">
+                            <div id="map"></div>
+                            <p style="color: #6c757d; font-size: 0.9em; margin-top: 10px; text-align: center;">
+                                💡 Haz clic en el mapa para seleccionar tu ubicación exacta
+                            </p>
+                        </div>
+
+                        <div id="locationInfo" style="display: none; background: white; padding: 20px; border-radius: 8px; margin: 15px 0; border: 1px solid #dee2e6;">
+                            <h4 style="color: #28a745; margin-bottom: 15px;">📍 Ubicación Confirmada</h4>
+                            <div id="selectedLocation"></div>
+                            <div id="distanceInfo" style="margin-top: 15px;"></div>
+                        </div>
+
+                        <div id="shippingResult" style="margin-top: 15px; font-weight: 600;"></div>
+                    </div>
                 </div>
 
-                <div id="pickupInfo" style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                    <h4 style="color: #856404;">🏪 Información de Recolección</h4>
-                    <p><strong>Dirección:</strong> Av. Reforma 180, Juárez, Ciudad de México</p>
-                    <p><strong>Horarios:</strong> Lunes a Domingo de 11:00 AM a 11:00 PM</p>
-                    <p><strong>Tiempo de preparación:</strong> 25-35 minutos</p>
-                    <div style="background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 6px; padding: 15px; margin-top: 15px; color: #0c5460;">
-                        <strong>📱 Notificación WhatsApp:</strong> Te enviaremos un mensaje cuando tu pedido esté listo para recoger.
+                <div id="pickupSection" style="display: none;">
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 20px; margin: 20px 0;">
+                        <h4 style="color: #856404;">🏪 Información de Recolección</h4>
+                        <p><strong>Dirección:</strong> Av. Reforma 180, Juárez, Ciudad de México</p>
+                        <p><strong>Horarios:</strong> Lunes a Domingo de 11:00 AM a 11:00 PM</p>
+                        <p><strong>Tiempo de preparación:</strong> 25-35 minutos</p>
+                        <div style="background: #d1ecf1; border: 1px solid #bee5eb; border-radius: 6px; padding: 15px; margin-top: 15px; color: #0c5460;">
+                            <strong>📱 Notificación WhatsApp:</strong> Te enviaremos un mensaje cuando tu pedido esté listo para recoger.
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="color: #212529; margin: 40px 0 25px 0; border-bottom: 2px solid #e9ecef; padding-bottom: 10px;">💳 Método de Pago</h3>
+                <div class="payment-methods">
+                    <div class="payment-method" onclick="selectPayment('card')">
+                        <div style="font-size: 2em; margin-bottom: 10px;">💳</div>
+                        <div><strong>Tarjeta de Crédito/Débito</strong></div>
+                        <small style="color: #6c757d;">Visa, MasterCard, American Express</small>
+                    </div>
+                    <div class="payment-method" onclick="selectPayment('cash')">
+                        <div style="font-size: 2em; margin-bottom: 10px;">💵</div>
+                        <div><strong>Pago en Efectivo</strong></div>
+                        <small style="color: #6c757d;">Al momento de la entrega/recogida</small>
+                    </div>
+                </div>
+                <div id="paymentDetails" style="display: none;"></div>
+
+                <div id="orderSummary" style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-top: 40px; border: 1px solid #dee2e6;">
+                    <h4 style="color: #212529; margin-bottom: 20px; border-bottom: 1px solid #dee2e6; padding-bottom: 10px;">📋 Resumen del Pedido</h4>
+                    <div id="checkoutItems"></div>
+                    <div style="border-top: 2px solid #dee2e6; padding-top: 20px; margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 1.1em;">
+                            <span>Subtotal:</span>
+                            <span id="checkoutSubtotal">$0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin: 8px 0; font-size: 1.1em;">
+                            <span id="shippingLabel">Envío:</span>
+                            <span id="checkoutShipping">$0</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 1.4em; font-weight: bold; color: #28a745; margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6;">
+                            <span>Total:</span>
+                            <span id="checkoutTotal">$0</span>
+                        </div>
                     </div>
                 </div>
 
                 <button class="btn-primary" onclick="processOrder()">
-                    🍣 Confirmar Pedido de Demostración
+                    🍣 Confirmar Pedido
                 </button>
             </div>
         </section>
@@ -1009,16 +1170,21 @@
             <div class="success-animation">
                 <div class="checkmark">✓</div>
                 <h2 style="color: #28a745; margin-bottom: 20px; font-weight: 300;">¡Pedido Confirmado!</h2>
-                <p style="font-size: 1.3em; margin-bottom: 40px; color: #6c757d;">Este es un sistema de demostración</p>
+                <p style="font-size: 1.3em; margin-bottom: 40px; color: #6c757d;">Tu delicioso sushi está siendo preparado con el máximo cuidado</p>
 
                 <div style="background: white; padding: 35px; border-radius: 12px; text-align: left; max-width: 600px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border: 1px solid #e9ecef;">
-                    <h3 style="color: #212529; margin-bottom: 20px;">📋 Detalles del Pedido Demo</h3>
+                    <h3 style="color: #212529; margin-bottom: 20px;">📋 Detalles del Pedido</h3>
                     <div style="display: grid; gap: 12px;">
-                        <p><strong>Número de Pedido:</strong> <span style="color: #007bff;">#DEMO-001</span></p>
+                        <p><strong>Número de Pedido:</strong> <span style="color: #007bff;">#SU-2024-001</span></p>
                         <p><strong>Tipo de Servicio:</strong> <span id="serviceTypeDisplay">Entrega a domicilio</span></p>
                         <p><strong>Tiempo Estimado:</strong> <span id="estimatedTimeDisplay">35-45 minutos</span></p>
-                        <p><strong>Total:</strong> <span style="color: #28a745; font-weight: bold; font-size: 1.2em;">$0</span></p>
+                        <p><strong>Total:</strong> <span style="color: #28a745; font-weight: bold; font-size: 1.2em;" id="finalTotal">$0</span></p>
                         <p><strong>Estado:</strong> <span style="color: #ffc107; font-weight: 600;">⏳ En preparación</span></p>
+                    </div>
+                    
+                    <div id="whatsappConfirmation" style="display: none; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 15px; margin-top: 20px;">
+                        <strong style="color: #155724;">📱 WhatsApp Activado:</strong>
+                        <p style="color: #155724; margin: 5px 0 0 0;">Te notificaremos por WhatsApp cuando tu pedido esté listo para recoger.</p>
                     </div>
                 </div>
 
@@ -1087,18 +1253,70 @@
             <!-- Tab: Gestión de Menú -->
             <div id="menuTab" class="admin-tab-content">
                 <div class="admin-content">
-                    <h3 style="color: #212529; margin-bottom: 20px;">🍣 Gestión de Menú</h3>
-                    <div style="background: #f8f9fa; padding: 20px; border-radius: 8px;">
-                        <h4>Funcionalidades del Sistema:</h4>
-                        <ul style="margin: 15px 0; padding-left: 20px;">
-                            <li>✅ Agregar nuevos productos</li>
-                            <li>✅ Editar productos existentes</li>
-                            <li>✅ Subir imágenes de productos</li>
-                            <li>✅ Gestionar precios y descripciones</li>
-                            <li>✅ Activar/desactivar productos</li>
-                            <li>✅ Organizar por categorías</li>
-                        </ul>
-                        <button class="btn-admin success">💡 Ver Demo Interactivo</button>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h3 style="color: #212529; margin: 0;">🍣 Gestión de Menú</h3>
+                        <button class="btn-admin success" onclick="addDemoProduct()">➕ Agregar Producto Demo</button>
+                    </div>
+                    
+                    <div id="menuProductsList">
+                        <div style="display: grid; gap: 20px;">
+                            <div class="order-card" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <span style="font-size: 2em;">🍣</span>
+                                    <div>
+                                        <h4 style="margin: 0; color: #212529;">Sashimi Variado</h4>
+                                        <p style="margin: 5px 0; color: #6c757d; font-size: 0.9em;">Selección de pescados frescos</p>
+                                        <div style="color: #28a745; font-weight: 600;">$280</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn-admin" onclick="editProductDemo('Sashimi Variado')">✏️ Editar</button>
+                                    <button class="btn-admin success" onclick="toggleProductStatus('Sashimi Variado', true)">✅ Activo</button>
+                                </div>
+                            </div>
+
+                            <div class="order-card" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <span style="font-size: 2em;">🍱</span>
+                                    <div>
+                                        <h4 style="margin: 0; color: #212529;">Bento Box Deluxe</h4>
+                                        <p style="margin: 5px 0; color: #6c757d; font-size: 0.9em;">Caja completa con california roll, tempura</p>
+                                        <div style="color: #28a745; font-weight: 600;">$350</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn-admin" onclick="editProductDemo('Bento Box Deluxe')">✏️ Editar</button>
+                                    <button class="btn-admin success" onclick="toggleProductStatus('Bento Box Deluxe', true)">✅ Activo</button>
+                                </div>
+                            </div>
+
+                            <div class="order-card" style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <span style="font-size: 2em;">🥢</span>
+                                    <div>
+                                        <h4 style="margin: 0; color: #212529;">California Roll</h4>
+                                        <p style="margin: 5px 0; color: #6c757d; font-size: 0.9em;">Clásico roll con cangrejo, aguacate y pepino</p>
+                                        <div style="color: #28a745; font-weight: 600;">$180</div>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn-admin" onclick="editProductDemo('California Roll')">✏️ Editar</button>
+                                    <button class="btn-admin danger" onclick="toggleProductStatus('California Roll', false)">❌ Inactivo</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="background: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 20px; margin-top: 30px;">
+                        <h4 style="color: #1976d2; margin-bottom: 15px;">💡 Funcionalidades Disponibles</h4>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                            <div>✅ <strong>Agregar productos</strong> - Con imágenes y detalles</div>
+                            <div>✅ <strong>Editar información</strong> - Precios, descripciones</div>
+                            <div>✅ <strong>Gestión de disponibilidad</strong> - Activar/desactivar</div>
+                            <div>✅ <strong>Categorización</strong> - Organizar por tipos</div>
+                            <div>✅ <strong>Control de inventario</strong> - Stock y alertas</div>
+                            <div>✅ <strong>Promociones</strong> - Descuentos especiales</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1166,12 +1384,23 @@
         </section>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
     <script>
         // Variables globales
         let cart = [];
         let currentProduct = null;
         let selectedDeliveryType = null;
+        let selectedPayment = null;
+        let shippingCost = 0;
+        let userLocation = null;
         let demoOrders = [];
+
+        // Mapa
+        let map = null;
+        let userMarker = null;
+        const restaurantLocation = [19.4326, -99.1332];
+        const restaurantAddress = "Av. Reforma 180, Juárez, Ciudad de México";
 
         // Navegación entre secciones
         function showSection(section) {
@@ -1179,6 +1408,8 @@
             document.querySelectorAll('.nav-buttons button').forEach(b => b.classList.remove('active'));
             document.getElementById(section).classList.add('active');
             event.currentTarget.classList.add('active');
+            
+            if (section === 'checkout') updateCheckoutSummary();
         }
 
         // Modal de personalización
@@ -1334,6 +1565,7 @@
             }
             updateCartDisplay();
             updateCartCounter();
+            updateCheckoutSummary();
         }
 
         // Delivery type selection
@@ -1343,18 +1575,249 @@
             event.currentTarget.classList.add('selected');
             
             if (type === 'delivery') {
-                document.getElementById('deliveryInfo').style.display = 'block';
-                document.getElementById('pickupInfo').style.display = 'none';
+                document.getElementById('deliverySection').style.display = 'block';
+                document.getElementById('pickupSection').style.display = 'none';
+                document.getElementById('shippingLabel').textContent = 'Envío:';
             } else {
-                document.getElementById('deliveryInfo').style.display = 'none';
-                document.getElementById('pickupInfo').style.display = 'block';
+                document.getElementById('deliverySection').style.display = 'none';
+                document.getElementById('pickupSection').style.display = 'block';
+                document.getElementById('shippingLabel').textContent = 'Servicio:';
+                shippingCost = 0; // No shipping cost for pickup
+            }
+            updateCheckoutSummary();
+        }
+
+        // Payment selection
+        function selectPayment(method) {
+            selectedPayment = method;
+            document.querySelectorAll('.payment-method').forEach(pm => pm.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            
+            const details = document.getElementById('paymentDetails');
+            let html = '';
+            
+            if (method === 'card') {
+                html = `
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-top: 20px; border: 1px solid #dee2e6;">
+                    <h4 style="margin-bottom: 20px; color: #212529;">💳 Datos de la Tarjeta</h4>
+                    <div class="form-group">
+                        <label>Número de Tarjeta *</label>
+                        <input type="text" placeholder="1234 5678 9012 3456" maxlength="19">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="form-group">
+                            <label>Vencimiento *</label>
+                            <input type="text" placeholder="MM/AA" maxlength="5">
+                        </div>
+                        <div class="form-group">
+                            <label>CVV *</label>
+                            <input type="text" placeholder="123" maxlength="3">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Titular *</label>
+                        <input type="text" placeholder="Como aparece en la tarjeta">
+                    </div>
+                </div>`;
+            } else if (method === 'cash') {
+                html = `
+                <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-top: 20px; border: 1px solid #dee2e6;">
+                    <h4 style="margin-bottom: 20px; color: #212529;">💵 Pago en Efectivo</h4>
+                    <div style="background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px; padding: 15px; margin-bottom: 20px;">
+                        <strong style="color: #856404;">💡 Información importante:</strong>
+                        <p style="color: #856404; margin: 5px 0 0 0;">El repartidor llevará cambio para billetes hasta $500. Para cantidades mayores, por favor ten el monto exacto.</p>
+                    </div>
+                    <div class="form-group">
+                        <label>¿Con cuánto vas a pagar? (opcional)</label>
+                        <input type="number" placeholder="Ej: 500" min="0">
+                    </div>
+                </div>`;
+            }
+            
+            details.innerHTML = html;
+            details.style.display = html ? 'block' : 'none';
+        }
+
+        // Checkout summary
+        function updateCheckoutSummary() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
+            const total = subtotal + shippingCost;
+            
+            let itemsHtml = '';
+            cart.forEach(item => {
+                const itemTotal = item.totalPrice * item.quantity;
+                itemsHtml += `
+                    <div style="display: flex; justify-content: space-between; margin: 12px 0; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                        <div>
+                            <span style="font-weight: 600;">${item.icon} ${item.name}</span>
+                            <span style="color: #6c757d;"> x${item.quantity}</span>
+                            ${item.extras && item.extras.length > 0 ? `<br><small style="color: #6c757d;">+ ${item.extras.map(e => e.name).join(', ')}</small>` : ''}
+                        </div>
+                        <span style="font-weight: 600;">$${itemTotal}</span>
+                    </div>`;
+            });
+            
+            document.getElementById('checkoutItems').innerHTML = itemsHtml;
+            document.getElementById('checkoutSubtotal').textContent = `$${subtotal}`;
+            document.getElementById('checkoutShipping').textContent = `$${shippingCost}`;
+            document.getElementById('checkoutTotal').textContent = `$${total}`;
+        }
+
+        // Map functions
+        function toggleMap() {
+            const mc = document.getElementById('mapContainer');
+            const btn = document.getElementById('mapToggle');
+            if (mc.style.display === 'block') {
+                mc.style.display = 'none';
+                btn.textContent = '📍 Abrir Mapa Interactivo';
+            } else {
+                mc.style.display = 'block';
+                btn.textContent = '🗺️ Cerrar Mapa';
+                initMap();
+                setTimeout(() => map && map.invalidateSize(), 100);
+            }
+        }
+
+        function initMap() {
+            if (!map) {
+                map = L.map('map').setView(restaurantLocation, 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+                
+                L.marker(restaurantLocation, {
+                    icon: L.divIcon({ html: '🍣', iconSize: [30, 30], className: 'restaurant-marker' })
+                }).addTo(map).bindPopup(`<b>🍣 SushiDelicia</b><br><small>${restaurantAddress}</small>`);
+                
+                map.on('click', e => setUserLocation(e.latlng.lat, e.latlng.lng));
+            }
+        }
+
+        function setUserLocation(lat, lng) {
+            userLocation = [lat, lng];
+            if (userMarker && map) map.removeLayer(userMarker);
+            
+            userMarker = L.marker([lat, lng], {
+                icon: L.divIcon({ html: '📍', iconSize: [30, 30], className: 'user-marker' })
+            }).addTo(map).bindPopup('📍 Tu ubicación').openPopup();
+            
+            reverseGeocode(lat, lng);
+            calculateDistanceAndCost(lat, lng);
+            document.getElementById('locationInfo').style.display = 'block';
+        }
+
+        function reverseGeocode(lat, lng) {
+            const neighborhoods = ['Roma Norte', 'Condesa', 'Polanco', 'Santa Fe', 'Coyoacán', 'San Ángel', 'Zona Rosa', 'Del Valle', 'Narvarte', 'Doctores'];
+            const randomNeighborhood = neighborhoods[Math.floor(Math.random() * neighborhoods.length)];
+            document.getElementById('selectedLocation').innerHTML = `
+                <strong>Dirección aproximada:</strong><br>
+                ${randomNeighborhood}, Ciudad de México<br>
+                <small style="color: #6c757d;">Coordenadas: ${lat.toFixed(4)}, ${lng.toFixed(4)}</small>`;
+        }
+
+        function calculateDistanceAndCost(lat, lng) {
+            const distance = calculateDistance(restaurantLocation[0], restaurantLocation[1], lat, lng);
+            let cost = 35; // Base cost
+            if (distance > 5) cost += Math.floor((distance - 5) * 8);
+            if (distance > 15) cost += 20; // Extra charge for long distances
+            shippingCost = Math.min(cost, 120); // Max shipping cost
+            
+            const estimatedTime = Math.max(25, Math.floor(distance * 2.5 + 15));
+            
+            document.getElementById('distanceInfo').innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div style="text-align: center; padding: 10px; background: #e3f2fd; border-radius: 6px;">
+                        <div style="color: #1976d2; font-weight: 600;">Distancia</div>
+                        <div style="font-size: 1.2em; font-weight: bold;">${distance.toFixed(1)} km</div>
+                    </div>
+                    <div style="text-align: center; padding: 10px; background: #fff3e0; border-radius: 6px;">
+                        <div style="color: #f57c00; font-weight: 600;">Tiempo Est.</div>
+                        <div style="font-size: 1.2em; font-weight: bold;">${estimatedTime}-${estimatedTime + 10} min</div>
+                    </div>
+                </div>`;
+            
+            document.getElementById('shippingResult').innerHTML = `
+                <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 15px; color: #155724;">
+                    <strong>✓ Costo de envío calculado: $${shippingCost}</strong><br>
+                    <small>Distancia: ${distance.toFixed(1)}km • Tiempo estimado: ${estimatedTime}-${estimatedTime + 10} minutos</small>
+                </div>`;
+            
+            updateCheckoutSummary();
+        }
+
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // Radius of Earth in kilometers
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        }
+
+        function searchAddress() {
+            const address = document.getElementById('addressSearch').value.trim();
+            if (!address) {
+                alert('Por favor ingresa una dirección');
+                return;
+            }
+            
+            // Simulate geocoding with random coordinates in Mexico City bounds
+            const bounds = { north: 19.5909, south: 19.2808, east: -98.9467, west: -99.3370 };
+            const lat = Math.random() * (bounds.north - bounds.south) + bounds.south;
+            const lng = Math.random() * (bounds.east - bounds.west) + bounds.west;
+            
+            if (document.getElementById('mapContainer').style.display === 'none') {
+                toggleMap();
+            }
+            
+            setTimeout(() => {
+                if (map) {
+                    map.setView([lat, lng], 15);
+                    setUserLocation(lat, lng);
+                }
+            }, 200);
+        }
+
+        function getCurrentLocation() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        if (document.getElementById('mapContainer').style.display === 'none') {
+                            toggleMap();
+                        }
+                        
+                        setTimeout(() => {
+                            if (map) {
+                                map.setView([lat, lng], 15);
+                                setUserLocation(lat, lng);
+                            }
+                        }, 200);
+                    },
+                    () => alert('No se pudo obtener tu ubicación. Por favor verifica los permisos del navegador.')
+                );
+            } else {
+                alert('Tu navegador no soporta geolocalización');
             }
         }
 
         // Process order
         function processOrder() {
+            if (cart.length === 0) {
+                alert('Tu carrito está vacío');
+                return;
+            }
             if (!selectedDeliveryType) {
                 alert('Por favor selecciona el tipo de servicio');
+                return;
+            }
+            if (!selectedPayment) {
+                alert('Por favor selecciona un método de pago');
+                return;
+            }
+            if (selectedDeliveryType === 'delivery' && !userLocation) {
+                alert('Por favor selecciona tu ubicación en el mapa para la entrega');
                 return;
             }
             
@@ -1364,11 +1827,18 @@
             btn.disabled = true;
             
             setTimeout(() => {
+                const total = cart.reduce((s, item) => s + (item.totalPrice * item.quantity), 0) + shippingCost;
+                document.getElementById('finalTotal').textContent = `$${total}`;
+                
                 const serviceType = selectedDeliveryType === 'delivery' ? 'Entrega a domicilio' : 'Recoger en tienda';
                 document.getElementById('serviceTypeDisplay').textContent = serviceType;
                 
                 const estimatedTime = selectedDeliveryType === 'delivery' ? '45-60 minutos' : '25-35 minutos';
                 document.getElementById('estimatedTimeDisplay').textContent = estimatedTime;
+                
+                if (selectedDeliveryType === 'pickup') {
+                    document.getElementById('whatsappConfirmation').style.display = 'block';
+                }
                 
                 showSection('success');
                 btn.textContent = originalText;
@@ -1378,12 +1848,29 @@
 
         function newOrder() {
             cart = [];
+            selectedPayment = null;
             selectedDeliveryType = null;
+            shippingCost = 0;
+            userLocation = null;
+            
+            if (userMarker && map) {
+                map.removeLayer(userMarker);
+                userMarker = null;
+            }
+            
             updateCartDisplay();
             updateCartCounter();
+            document.getElementById('shippingResult').innerHTML = '';
+            document.getElementById('locationInfo').style.display = 'none';
+            document.getElementById('mapContainer').style.display = 'none';
+            document.getElementById('mapToggle').textContent = '📍 Abrir Mapa Interactivo';
+            document.getElementById('addressSearch').value = '';
+            document.getElementById('paymentDetails').style.display = 'none';
+            document.querySelectorAll('.payment-method').forEach(pm => pm.classList.remove('selected'));
             document.querySelectorAll('.delivery-option').forEach(opt => opt.classList.remove('selected'));
-            document.getElementById('deliveryInfo').style.display = 'none';
-            document.getElementById('pickupInfo').style.display = 'none';
+            document.getElementById('deliverySection').style.display = 'none';
+            document.getElementById('pickupSection').style.display = 'none';
+            
             showSection('menu');
         }
 
@@ -1487,7 +1974,71 @@
         }
 
         function testWhatsApp() {
-            showNotification('📱 Mensaje de prueba enviado a WhatsApp Business');
+            const phoneNumber = '8995435603';
+            const message = 'Hola! Este es un mensaje de prueba desde el sistema SushiDelicia. El sistema de administración está funcionando correctamente. 🍣';
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappUrl, '_blank');
+            showNotification('📱 Abriendo WhatsApp para enviar mensaje de prueba...');
+        }
+
+        // Menu management functions
+        function addDemoProduct() {
+            const productNames = ['Nigiri de Atún', 'Tempura de Vegetales', 'Miso Soup', 'Yakitori', 'Udon Noodles'];
+            const icons = ['🍣', '🥕', '🍲', '🍗', '🍜'];
+            const prices = [150, 200, 80, 180, 160];
+            
+            const randomIndex = Math.floor(Math.random() * productNames.length);
+            const newProduct = {
+                name: productNames[randomIndex],
+                icon: icons[randomIndex],
+                price: prices[randomIndex],
+                active: true
+            };
+            
+            // Add to menu list
+            const menuList = document.getElementById('menuProductsList');
+            const productCard = document.createElement('div');
+            productCard.className = 'order-card';
+            productCard.style.cssText = 'display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #28a745;';
+            productCard.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <span style="font-size: 2em;">${newProduct.icon}</span>
+                    <div>
+                        <h4 style="margin: 0; color: #212529;">${newProduct.name}</h4>
+                        <p style="margin: 5px 0; color: #6c757d; font-size: 0.9em;">Producto recién agregado - descripción pendiente</p>
+                        <div style="color: #28a745; font-weight: 600;">${newProduct.price}</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-admin" onclick="editProductDemo('${newProduct.name}')">✏️ Editar</button>
+                    <button class="btn-admin success" onclick="toggleProductStatus('${newProduct.name}', true)">✅ Activo</button>
+                </div>
+            `;
+            
+            menuList.querySelector('div').appendChild(productCard);
+            showNotification(`Producto "${newProduct.name}" agregado al menú`);
+        }
+
+        function editProductDemo(productName) {
+            showNotification(`Demo: Editando producto "${productName}" - Se abriría formulario de edición`);
+        }
+
+        function toggleProductStatus(productName, currentStatus) {
+            const button = event.currentTarget;
+            const newStatus = !currentStatus;
+            
+            if (newStatus) {
+                button.className = 'btn-admin success';
+                button.innerHTML = '✅ Activo';
+                button.onclick = () => toggleProductStatus(productName, true);
+                showNotification(`Producto "${productName}" activado`);
+            } else {
+                button.className = 'btn-admin danger';
+                button.innerHTML = '❌ Inactivo';
+                button.onclick = () => toggleProductStatus(productName, false);
+                showNotification(`Producto "${productName}" desactivado`);
+            }
         }
 
         // Utility functions
